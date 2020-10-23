@@ -185,7 +185,7 @@ function App() {
               size="sm"
               onClick={() => { window.open(`${NETWORK[network].blockscout}/address/${contractAdr0}`) }} disabled={busy || contractAdr0 === ''}
             >
-              <i class="fas fa-globe" />
+              <i className="fas fa-globe" />
             </Button>
             <Button variant="warning" block onClick={deploy} size="sm" disabled={busy}>
               <small>Deploy</small>
