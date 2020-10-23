@@ -187,7 +187,7 @@ function App() {
             >
               <i className="fas fa-globe" />
             </Button>
-            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy}>
+            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy || contractAdr0 === ''}>
               <small>Deploy</small>
             </Button>
           </InputGroup.Append>
