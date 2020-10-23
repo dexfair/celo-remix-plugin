@@ -1,6 +1,7 @@
 import React from 'react'
-import { Button, Container, Form } from 'react-bootstrap'
+import { Button, Container, Form, FormControl, InputGroup } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
+import { Celo } from "@dexfair/celo-web-signer"
 
 function App() {
   const [client, setClient] = React.useState(null)
@@ -12,11 +13,22 @@ function App() {
   const [account, setAccount] = React.useState('')
   const [network, setNetwork] = React.useState('Mainnet')
   const [contract, setContract] = React.useState('')
+  const [contractAdr0, setContractAdr0] = React.useState('')
+
+  const [celo, setCelo] = React.useState(null)
+  const [busy, setBusy] = React.useState(false)
+
+  const NETWORK = {
+    Mainnet: { provider: 'https://rc1-forno.celo-testnet.org', blockscout: 'https://explorer.celo.org' },
+    Baklava: { provider: 'https://baklava-forno.celo-testnet.org', blockscout: 'https://baklava-blockscout.celo-testnet.org' },
+    Alfajores: { provider: 'https://alfajores-forno.celo-testnet.org', blockscout: 'https://alfajores-blockscout.celo-testnet.org' }
+  }
 
   React.useEffect(() => {
     async function init () {
       if (!client) {
         setClient(createIframeClient())
+        setCelo(new Celo())
       } else {
         await client.onload()
         client.solidity.on('compilationFinished', (fileName, source, languageVersion, data) => {
@@ -27,14 +39,41 @@ function App() {
           setContract(Object.keys(data.contracts[fileName]).length > 0 ? Object.keys(data.contracts[fileName])[0] : '')
           getConstructor(data.contracts[fileName][Object.keys(data.contracts[fileName])[0]])
         })
+        await celo.init(NETWORK[network].provider, setAccount)
       }
     }
-    // TODO: celo & web3 init
     init()
   })
 
-  function deploy() {
-    // TODO: deploy
+  async function deploy() {
+    if (!busy) {
+      setBusy(true)
+      const contractData = data[contract.replace(` - ${fileName}`, '')]
+      const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify(contractData.abi)))
+      const args = []
+      for(let i = 0; i < constructor.length; i++) {
+        if (constructor[i].type[constructor[i].type.length-1] === ']') {
+          args.push(JSON.parse(constructor[i].value))
+        } else {
+          args.push(constructor[i].value.toString())
+        }
+      }
+      try {
+        const rawTx = {
+          from: account,
+          data: newContract.deploy({ data: `0x${contractData.evm.bytecode.object}`, arguments: args }).encodeABI()
+        }
+        const tx = await celo.sendTransaction(rawTx)
+        const txReceipt = await tx.waitReceipt()
+        setContractAdr0(txReceipt.contractAddress)
+        // console.log(txReceipt.transactionHash)
+        setBusy(false)
+      } catch (error) {
+        // eslint-disable-next-line
+        console.log(error)
+        setBusy(false)
+      }
+    }
   }
 
   function atAddress() {
@@ -63,9 +102,9 @@ function App() {
     const items = list.map((parm, index) => (
       <Form.Group key={index.toString()}>
         <Form.Text className="text-muted">
-          {parm.name}
+          <small>{parm.name}</small>
         </Form.Text>
-        <Form.Control type="text" placeholder={parm.name} onChange={parm.onChange} />
+        <Form.Control type="text" placeholder={parm.name} onChange={parm.onChange} size="sm" />
       </Form.Group>))
     return (
       <Form>
@@ -76,22 +115,19 @@ function App() {
   }
 
   function handelContract(e) {
-    const name = e.target.value.replace(` - ${fileName}`, '')
-    setContract(name)
-    getConstructor(data[name])
+    setContract(e.target.value)
+    getConstructor(data[e.target.value.replace(` - ${fileName}`, '')])
   }
 
   function Networks() {
-    const list = {
-      Mainnet: { provider: 'https://rc1-forno.celo-testnet.org', blockscout: 'https://explorer.celo.org' },
-      Baklava: { provider: 'https://baklava-forno.celo-testnet.org', blockscout: 'https://baklava-blockscout.celo-testnet.org' },
-      Alfajores: { provider: 'https://alfajores-forno.celo-testnet.org', blockscout: 'https://alfajores-blockscout.celo-testnet.org' }
-    }
+    const list = NETWORK
     const items = Object.keys(list).map((key) => <option key={key}>{key}</option> )
     return (
       <Form.Group>
-        <Form.Text className="text-muted">NETWORK</Form.Text>
-        <Form.Control as="select" value={network} onChange={(e) => setNetwork(e.target.value)}>
+        <Form.Text className="text-muted">
+          <small>NETWORK</small>
+        </Form.Text>
+        <Form.Control as="select" value={network} onChange={(e) => setNetwork(e.target.value)} size="sm">
           {items}
         </Form.Control>    
       </Form.Group>
@@ -103,8 +139,10 @@ function App() {
     const items = Object.keys(list).map((key) => <option key={key}>{`${key} - ${props.fileName}`}</option> )
     return (
       <Form.Group>
-        <Form.Text className="text-muted">CONTRACT</Form.Text>
-        <Form.Control as="select" value={contract} onChange={handelContract}>
+        <Form.Text className="text-muted">
+          <small>CONTRACT</small>
+        </Form.Text>
+        <Form.Control as="select" value={contract} onChange={handelContract} size="sm">
           {items}
         </Form.Control>
       </Form.Group>
@@ -116,23 +154,58 @@ function App() {
       <Container>
         <Form>
           <Form.Group>
-            <Form.Text className="text-muted">LANGUAGE</Form.Text>
-            <Form.Control type="text" placeholder="Language" value={language} readOnly />
+            <Form.Text className="text-muted">
+              <small>LANGUAGE</small>
+            </Form.Text>
+            <Form.Control type="text" placeholder="Language" value={language} size="sm" readOnly />
           </Form.Group>
           <Form.Group>
-            <Form.Text className="text-muted">FILE NAME</Form.Text>
-            <Form.Control type="text" placeholder="File Name" value={fileName} readOnly />
+            <Form.Text className="text-muted">
+              <small>FILE NAME</small>
+            </Form.Text>
+            <Form.Control type="text" placeholder="File Name" value={fileName} size="sm" readOnly />
           </Form.Group>
           <hr />
           <Form.Group>
-            <Form.Text className="text-muted">ACCOUNT</Form.Text>
-            <Form.Control type="text" placeholder="Account" value={account} readOnly />
+            <Form.Text className="text-muted">
+              <small>ACCOUNT</small>
+            </Form.Text>
+            <Form.Control type="text" placeholder="Account" value={account} size="sm" readOnly />
           </Form.Group>
           <Networks />
         </Form>
         <hr />
         <MethodParmsForm parms={constructor} />
-        <Button variant="outline-primary" block onClick={deploy}>Deploy</Button>
+        <hr />
+        <InputGroup className="mb-3">
+          <FormControl value={contractAdr0} size="sm" readOnly />
+          <InputGroup.Append>
+            <Button
+              variant="warning"
+              size="sm"
+              onClick={() => { window.open(`${NETWORK[network].blockscout}/address/${contractAdr0}`) }} disabled={busy || contractAdr0 === ''}
+            >
+              <i class="fas fa-globe" />
+            </Button>
+            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy}>
+              <small>Deploy</small>
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
+        <p className="text-center"><small>OR</small></p>
+        <InputGroup className="mb-3">
+          <FormControl  size="sm" />
+          <InputGroup.Append>
+            <Button
+              variant="primary"
+              size="sm"
+            >
+              At Address
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
+        <hr />
+        <p className="text-center"><small>Deployed Contracts</small></p>
       </Container>
     </div>
   )

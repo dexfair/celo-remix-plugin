@@ -1353,6 +1353,14 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
+"@dexfair/celo-web-signer@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@dexfair/celo-web-signer/-/celo-web-signer-0.2.0.tgz#abcacf06a2d5e680c39f381de2039f0d83e9c211"
+  integrity sha512-bpFan9kTbpDEB46dUdibuAbETmWoFxq82uiEjMoe1y4/lqmfX00ptPo1EBJZ4Z2n69xQQ39m3YhY2EO/6vXCnw==
+  dependencies:
+    "@celo/contractkit" "^0.4.14"
+    "@metamask/detect-provider" "^1.1.0"
+
 "@firebase/analytics-types@0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@firebase/analytics-types/-/analytics-types-0.4.0.tgz#d6716f9fa36a6e340bc0ecfe68af325aa6f60508"
@@ -1877,6 +1885,11 @@
   version "5.26.0"
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-5.26.0.tgz#171bd471265259663520abb02a0eed80e949e3a1"
   integrity sha512-/3EKvS9eHzKl9Om+t//SPnzJaahIoVIUlozLMSarINyO7SSh174kxl3jTNHBl7dLxvkQyDDs5imLvP04ohlQaw==
+
+"@metamask/detect-provider@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/detect-provider/-/detect-provider-1.1.0.tgz#3200883de5d739bd0f7edfd1c9bb2bd01011ea49"
+  integrity sha512-7klN00NjDWPNUG4m5chX7LwUgnQ/L1r1m2+5VNx4zJsbD7oXsqQtkFyGwXe3msYUIvuRFeyH2kK94zeNEidxpw==
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
