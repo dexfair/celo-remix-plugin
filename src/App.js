@@ -2,6 +2,7 @@ import React from 'react'
 import { Button, Container, Form, FormControl, InputGroup } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
 import { Celo } from "@dexfair/celo-web-signer"
+import Footer from "./Footer";
 
 function App() {
   const [client, setClient] = React.useState(null)
@@ -187,7 +188,7 @@ function App() {
             >
               <i className="fas fa-globe" />
             </Button>
-            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy || contractAdr0 === ''}>
+            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy}>
               <small>Deploy</small>
             </Button>
           </InputGroup.Append>
@@ -207,6 +208,9 @@ function App() {
         <hr />
         <p className="text-center"><small>Deployed Contracts</small></p>
       </Container>
+      <Footer
+        children={<small>by DexFair</small>}
+      />
     </div>
   )
 }

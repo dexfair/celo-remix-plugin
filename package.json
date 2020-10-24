@@ -1,5 +1,5 @@
 {
-  "name": "celo-remix-plugin",
+  "name": "@dexfair/celo-remix-plugin",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -16,6 +16,7 @@
     "react-dom": "^16.14.0",
     "react-scripts": "3.4.3"
   },
+  "homepage": "/celo-remix-plugin",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
