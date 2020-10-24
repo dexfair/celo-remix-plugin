@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "fef58b7d9f27f52ff93fee0b2cb1d953",
+    "revision": "4c8da28dcf9b4c713f5f03eb07301b8b",
     "url": "/celo-remix-plugin/index.html"
   },
   {
-    "revision": "a66dbfdee02477c6367f",
+    "revision": "d2ac229a7c8edc58fc1b",
     "url": "/celo-remix-plugin/static/css/main.5ecd60fb.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/celo-remix-plugin/static/js/2.62140ac0.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "a66dbfdee02477c6367f",
-    "url": "/celo-remix-plugin/static/js/main.97dd4644.chunk.js"
+    "revision": "d2ac229a7c8edc58fc1b",
+    "url": "/celo-remix-plugin/static/js/main.981e82de.chunk.js"
   },
   {
     "revision": "27fcf8f381e77a9e2d39",
