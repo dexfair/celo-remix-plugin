@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Container, Form, FormControl, InputGroup } from 'react-bootstrap'
+import { Button, Card, Container, Form, FormControl, InputGroup } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
 import { Celo } from "@dexfair/celo-web-signer"
 import Footer from "./Footer";
@@ -9,7 +9,7 @@ function App() {
   const [language, setLanguage] = React.useState('')
   const [fileName, setFileName] = React.useState('')
   const [data, setData] = React.useState([])
-  const [constructor, setConstructor] = React.useState([])
+  const [constructor, setConstructor] = React.useState({})
 
   const [account, setAccount] = React.useState('')
   const [network, setNetwork] = React.useState('Mainnet')
@@ -52,11 +52,11 @@ function App() {
       const contractData = data[contract.replace(` - ${fileName}`, '')]
       const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify(contractData.abi)))
       const args = []
-      for(let i = 0; i < constructor.length; i++) {
-        if (constructor[i].type[constructor[i].type.length-1] === ']') {
-          args.push(JSON.parse(constructor[i].value))
+      for(let i = 0; i < constructor.inputs.length; i++) {
+        if (constructor.inputs[i].type[constructor.inputs[i].type.length-1] === ']') {
+          args.push(JSON.parse(constructor.inputs[i].value))
         } else {
-          args.push(constructor[i].value.toString())
+          args.push(constructor.inputs[i].value.toString())
         }
       }
       try {
@@ -82,14 +82,14 @@ function App() {
   }
 
   function getConstructor(contract) {
-    setConstructor([])
+    setConstructor({})
     for(let i = 0; i < contract.abi.length; i++) {
       if(contract.abi[i].type === 'constructor') {
-        const temp = JSON.parse(JSON.stringify(contract.abi[i].inputs))
-        for (let i = 0; i < temp.length; i++) {
-          temp[i].value = ''
-          temp[i].onChange = (e) => {
-            temp[i].value = e.target.value
+        const temp = JSON.parse(JSON.stringify(contract.abi[i]))
+        for (let i = 0; i < temp.inputs.length; i++) {
+          temp.inputs[i].value = ''
+          temp.inputs[i].onChange = (e) => {
+            temp.inputs[i].value = e.target.value
           }
         }
         setConstructor(temp)
@@ -99,18 +99,27 @@ function App() {
   }
 
   function MethodParmsForm(props) {
-    const list = props.parms
+    const list = props.parms.inputs ? props.parms.inputs : []
     const items = list.map((parm, index) => (
       <Form.Group key={index.toString()}>
         <Form.Text className="text-muted">
           <small>{parm.name}</small>
         </Form.Text>
-        <Form.Control type="text" placeholder={parm.name} onChange={parm.onChange} size="sm" />
+        <Form.Control type="text" placeholder={parm.type} onChange={parm.onChange} size="sm" />
       </Form.Group>))
     return (
       <Form>
         <Contracts contracts={data} fileName={fileName} />
-        { items }
+        <div className={list.length === 0 ? 'd-none' : ''}>
+          <Card>
+            <Card.Header size="sm">
+              <small>{ (props.parms.name || props.parms.type) }</small>
+            </Card.Header>
+            <Card.Body>
+              { items }
+            </Card.Body>
+          </Card>
+        </div>
       </Form>
     )
   }
@@ -177,7 +186,6 @@ function App() {
         </Form>
         <hr />
         <MethodParmsForm parms={constructor} />
-        <hr />
         <InputGroup className="mb-3">
           <FormControl value={contractAdr0} size="sm" readOnly />
           <InputGroup.Append>
@@ -188,14 +196,14 @@ function App() {
             >
               <i className="fas fa-globe" />
             </Button>
-            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy}>
+            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy || account === ''}>
               <small>Deploy</small>
             </Button>
           </InputGroup.Append>
         </InputGroup>
         <p className="text-center"><small>OR</small></p>
         <InputGroup className="mb-3">
-          <FormControl  size="sm" />
+          <FormControl size="sm" />
           <InputGroup.Append>
             <Button
               variant="primary"
