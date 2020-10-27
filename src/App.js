@@ -46,6 +46,12 @@ function App() {
     init()
   })
 
+  async function connect() {
+    if (window.ethereum) {
+      window.ethereum.enable();
+    }
+  }
+
   async function deploy() {
     if (!busy) {
       setBusy(true)
@@ -175,12 +181,18 @@ function App() {
             </Form.Text>
             <Form.Control type="text" placeholder="File Name" value={fileName} size="sm" readOnly />
           </Form.Group>
-          <hr />
           <Form.Group>
-            <Form.Text className="text-muted">
-              <small>ACCOUNT</small>
-            </Form.Text>
+          <Form.Text className="text-muted">
+            <small>ACCOUNT</small>
+          </Form.Text>
+          <InputGroup>
             <Form.Control type="text" placeholder="Account" value={account} size="sm" readOnly />
+            <InputGroup.Append>
+              <Button className={account !== '' ? 'd-none' : ''} variant="warning" block onClick={connect} size="sm">
+                <small>Connect</small>
+              </Button>
+            </InputGroup.Append>
+          </InputGroup>
           </Form.Group>
           <Networks />
         </Form>
@@ -208,6 +220,7 @@ function App() {
             <Button
               variant="primary"
               size="sm"
+              onClick={atAddress}
             >
               At Address
             </Button>
