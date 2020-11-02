@@ -1353,10 +1353,10 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
-"@dexfair/celo-web-signer@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@dexfair/celo-web-signer/-/celo-web-signer-0.2.1.tgz#a1df0bc549da98b3f1be2705b46c3780b1dd5ac5"
-  integrity sha512-g7Gakwa8SuqNRCYzG4fMpphAwrWFQSPFMhWZ8yFIqazjzjqbuECdSczT8eyqUvc/UT/sq7y6sPJpqthmzVKrNg==
+"@dexfair/celo-web-signer@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@dexfair/celo-web-signer/-/celo-web-signer-0.2.3.tgz#533608e7fe38ea61677cb50cd2e1d452b1a18bd1"
+  integrity sha512-DcfWtjGyeDb0T66GG3WMb3gs/P4vyGD6+cFx/U4Up9j68l/f7TyJjC0AaIEyNAfulHojUIm1fJIWUk/F+YJWyQ==
   dependencies:
     "@celo/contractkit" "^0.4.14"
     "@metamask/detect-provider" "^1.2.0"

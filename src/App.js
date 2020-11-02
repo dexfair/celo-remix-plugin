@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, Card, Container, Form, FormControl, InputGroup } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
-import { Celo } from "@dexfair/celo-web-signer"
+import { Celo, NETWORK } from "@dexfair/celo-web-signer"
 import Footer from "./Footer";
 
 function App() {
@@ -19,12 +19,6 @@ function App() {
   const [celo, setCelo] = React.useState(null)
   const [busy, setBusy] = React.useState(false)
 
-  const NETWORK = {
-    Mainnet: { provider: 'https://rc1-forno.celo-testnet.org', blockscout: 'https://explorer.celo.org' },
-    Baklava: { provider: 'https://baklava-forno.celo-testnet.org', blockscout: 'https://baklava-blockscout.celo-testnet.org' },
-    Alfajores: { provider: 'https://alfajores-forno.celo-testnet.org', blockscout: 'https://alfajores-blockscout.celo-testnet.org' }
-  }
-
   React.useEffect(() => {
     async function init () {
       if (!client) {
@@ -40,7 +34,7 @@ function App() {
           setContract(Object.keys(data.contracts[fileName]).length > 0 ? Object.keys(data.contracts[fileName])[0] : '')
           getConstructor(data.contracts[fileName][Object.keys(data.contracts[fileName])[0]])
         })
-        await celo.init(NETWORK[network].provider, setAccount)
+        await celo.init(network, setNetwork, setAccount)
       }
     }
     init()
@@ -76,7 +70,7 @@ function App() {
         setBusy(false)
       } catch (error) {
         // eslint-disable-next-line
-        console.log(error)
+        console.error(error)
         setBusy(false)
       }
     }
@@ -142,7 +136,7 @@ function App() {
         <Form.Text className="text-muted">
           <small>NETWORK</small>
         </Form.Text>
-        <Form.Control as="select" value={network} onChange={(e) => setNetwork(e.target.value)} size="sm">
+        <Form.Control as="select" value={network} onChange={(e) => {setNetwork(e.target.value); celo.changeNetwork(e.target.value);}} size="sm">
           {items}
         </Form.Control>    
       </Form.Group>
