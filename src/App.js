@@ -70,8 +70,7 @@ function App() {
           from: account,
           data: newContract.deploy({ data: `0x${contractData.evm.bytecode.object}`, arguments: args }).encodeABI()
         }
-        const tx = await celo.sendTransaction(rawTx)
-        const txReceipt = await tx.waitReceipt()
+        const txReceipt = await celo.sendTransaction(rawTx)
         setContractAdr0(txReceipt.contractAddress)
         // console.log(txReceipt.transactionHash)
         setBusy(false)

@@ -1,11 +1,11 @@
 {
   "name": "@dexfair/celo-remix-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "dependencies": {
     "@celo/celocli": "^0.0.58",
     "@celo/contractkit": "^0.4.14",
-    "@dexfair/celo-web-signer": "^0.2.0",
+    "@dexfair/celo-web-signer": "^0.2.1",
     "@remixproject/plugin": "0.1.18",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",

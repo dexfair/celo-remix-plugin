@@ -1,5 +1,5 @@
 {
-  "name": "celo-remix-plugin",
+  "name": "@dexfair/celo-remix-plugin",
   "displayName": "Celo Plugin",
   "description": "Deploy and interact with Celo.",
   "events": [],
