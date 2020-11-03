@@ -136,7 +136,7 @@ function App() {
         <Form.Text className="text-muted">
           <small>NETWORK</small>
         </Form.Text>
-        <Form.Control as="select" value={network} onChange={(e) => {setNetwork(e.target.value); celo.changeNetwork(e.target.value);}} size="sm">
+        <Form.Control as="select" value={network} onChange={(e) => {setNetwork(e.target.value); celo.changeNetwork(e.target.value);}}>
           {items}
         </Form.Control>    
       </Form.Group>
@@ -151,7 +151,7 @@ function App() {
         <Form.Text className="text-muted">
           <small>CONTRACT</small>
         </Form.Text>
-        <Form.Control as="select" value={contract} onChange={handelContract} size="sm">
+        <Form.Control as="select" value={contract} onChange={handelContract}>
           {items}
         </Form.Control>
       </Form.Group>
@@ -162,13 +162,13 @@ function App() {
     <div className="App">
       <Container>
         <Form>
-          <Form.Group>
+          <Form.Group hidden>
             <Form.Text className="text-muted">
               <small>LANGUAGE</small>
             </Form.Text>
             <Form.Control type="text" placeholder="Language" value={language} size="sm" readOnly />
           </Form.Group>
-          <Form.Group>
+          <Form.Group hidden>
             <Form.Text className="text-muted">
               <small>FILE NAME</small>
             </Form.Text>
