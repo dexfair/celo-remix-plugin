@@ -23,7 +23,7 @@ function App() {
     async function init () {
       if (!client) {
         setClient(createIframeClient())
-        setCelo(new Celo())
+        setCelo(new Celo(network))
       } else {
         await client.onload()
         client.solidity.on('compilationFinished', (fileName, source, languageVersion, data) => {
@@ -34,7 +34,7 @@ function App() {
           setContract(Object.keys(data.contracts[fileName]).length > 0 ? Object.keys(data.contracts[fileName])[0] : '')
           getConstructor(data.contracts[fileName][Object.keys(data.contracts[fileName])[0]])
         })
-        await celo.init(network, setNetwork, setAccount)
+        await celo.init(setNetwork, setAccount)
       }
     }
     init()

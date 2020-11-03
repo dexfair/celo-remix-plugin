@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/celo-remix-plugin/precache-manifest.f02c757656f86772db58bc5bdcf84bee.js"
+  "/celo-remix-plugin/precache-manifest.5eb8e42ba2e504d2f550a9efda8d6884.js"
 );
 
 self.addEventListener('message', (event) => {
