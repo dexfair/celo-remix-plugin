@@ -197,9 +197,10 @@ function App() {
             <Button
               variant="warning"
               size="sm"
-              onClick={() => { window.open(`${NETWORK[network].blockscout}/address/${contractAdr0}`) }} disabled={busy || contractAdr0 === ''}
+              onClick={() => { window.open(`${NETWORK[network].blockscout}/address/${contractAdr0}`) }}
+              hidden={busy || contractAdr0 === ''}
             >
-              <i className="fas fa-globe" />
+              <small>Link</small>
             </Button>
             <Button variant="warning" block onClick={deploy} size="sm" disabled={busy || account === ''}>
               <small>Deploy</small>
@@ -215,7 +216,7 @@ function App() {
               size="sm"
               onClick={atAddress}
             >
-              At Address
+              <small>At Address</small>
             </Button>
           </InputGroup.Append>
         </InputGroup>
@@ -223,7 +224,7 @@ function App() {
         <p className="text-center"><small>Deployed Contracts</small></p>
       </Container>
       <Footer
-        children={<small>by DexFair</small>}
+        children={<small>by dexfair</small>}
       />
     </div>
   )
