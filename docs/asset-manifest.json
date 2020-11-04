@@ -1,22 +1,22 @@
 {
   "files": {
     "main.css": "/celo-remix-plugin/static/css/main.5ecd60fb.chunk.css",
-    "main.js": "/celo-remix-plugin/static/js/main.aa3bc5cc.chunk.js",
-    "main.js.map": "/celo-remix-plugin/static/js/main.aa3bc5cc.chunk.js.map",
+    "main.js": "/celo-remix-plugin/static/js/main.5a787d35.chunk.js",
+    "main.js.map": "/celo-remix-plugin/static/js/main.5a787d35.chunk.js.map",
     "runtime-main.js": "/celo-remix-plugin/static/js/runtime-main.1f574d4f.js",
     "runtime-main.js.map": "/celo-remix-plugin/static/js/runtime-main.1f574d4f.js.map",
-    "static/js/2.fa009989.chunk.js": "/celo-remix-plugin/static/js/2.fa009989.chunk.js",
-    "static/js/2.fa009989.chunk.js.map": "/celo-remix-plugin/static/js/2.fa009989.chunk.js.map",
+    "static/js/2.c02a5f4d.chunk.js": "/celo-remix-plugin/static/js/2.c02a5f4d.chunk.js",
+    "static/js/2.c02a5f4d.chunk.js.map": "/celo-remix-plugin/static/js/2.c02a5f4d.chunk.js.map",
     "index.html": "/celo-remix-plugin/index.html",
-    "precache-manifest.6e62c82116cbad09ce8ee1e62de653d8.js": "/celo-remix-plugin/precache-manifest.6e62c82116cbad09ce8ee1e62de653d8.js",
+    "precache-manifest.446e4d264f31000c2084f4356c520e3f.js": "/celo-remix-plugin/precache-manifest.446e4d264f31000c2084f4356c520e3f.js",
     "service-worker.js": "/celo-remix-plugin/service-worker.js",
     "static/css/main.5ecd60fb.chunk.css.map": "/celo-remix-plugin/static/css/main.5ecd60fb.chunk.css.map",
-    "static/js/2.fa009989.chunk.js.LICENSE.txt": "/celo-remix-plugin/static/js/2.fa009989.chunk.js.LICENSE.txt"
+    "static/js/2.c02a5f4d.chunk.js.LICENSE.txt": "/celo-remix-plugin/static/js/2.c02a5f4d.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.1f574d4f.js",
-    "static/js/2.fa009989.chunk.js",
+    "static/js/2.c02a5f4d.chunk.js",
     "static/css/main.5ecd60fb.chunk.css",
-    "static/js/main.aa3bc5cc.chunk.js"
+    "static/js/main.5a787d35.chunk.js"
   ]
 }

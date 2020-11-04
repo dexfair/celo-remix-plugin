@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Card, Container, Form, FormControl, InputGroup } from 'react-bootstrap'
+import { Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
 import { Celo, NETWORK } from "@dexfair/celo-web-signer"
 import Footer from "./Footer";
@@ -13,8 +13,11 @@ function App() {
 
   const [account, setAccount] = React.useState('')
   const [network, setNetwork] = React.useState('Mainnet')
+  const [selectFileName, setSelectFileName] = React.useState('')
+  const [iconSpin, setIconSpin] = React.useState('')
   const [contract, setContract] = React.useState('')
   const [contractAdr0, setContractAdr0] = React.useState('')
+  const [error0, setError0] = React.useState('')
 
   const [celo, setCelo] = React.useState(null)
   const [busy, setBusy] = React.useState(false)
@@ -26,13 +29,22 @@ function App() {
         setCelo(new Celo(network))
       } else {
         await client.onload()
-        client.solidity.on('compilationFinished', (fileName, source, languageVersion, data) => {
-          // console.log(fileName, source, languageVersion, data)
-          setFileName(fileName)
+        client.solidity.on('compilationFinished', (fn, source, languageVersion, data) => {
+          // console.log(fn, source, languageVersion, data)
+          setFileName(fn)
           setLanguage(languageVersion)
-          setData(data.contracts[fileName])
-          setContract(Object.keys(data.contracts[fileName]).length > 0 ? Object.keys(data.contracts[fileName])[0] : '')
-          getConstructor(data.contracts[fileName][Object.keys(data.contracts[fileName])[0]])
+          setData(data.contracts[fn])
+          setContract(Object.keys(data.contracts[fn]).length > 0 ? Object.keys(data.contracts[fn])[0] : '')
+          getConstructor(data.contracts[fn][Object.keys(data.contracts[fn])[0]])
+        })
+        try {
+          setSelectFileName(await client.fileManager.getCurrentFile())
+        } catch (error) {
+          console.error(error)          
+        }
+        client.on('fileManager', 'currentFileChanged', (fn) => {
+          // console.log(fn)
+          setSelectFileName(fn)
         })
         await celo.init(setNetwork, setAccount)
       }
@@ -52,11 +64,13 @@ function App() {
       const contractData = data[contract.replace(` - ${fileName}`, '')]
       const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify(contractData.abi)))
       const args = []
-      for(let i = 0; i < constructor.inputs.length; i++) {
-        if (constructor.inputs[i].type[constructor.inputs[i].type.length-1] === ']') {
-          args.push(JSON.parse(constructor.inputs[i].value))
-        } else {
-          args.push(constructor.inputs[i].value.toString())
+      if (constructor && constructor.inputs) {
+        for(let i = 0; i < constructor.inputs.length; i++) {
+          if (constructor.inputs[i].type[constructor.inputs[i].type.length-1] === ']') {
+            args.push(JSON.parse(constructor.inputs[i].value))
+          } else {
+            args.push(constructor.inputs[i].value.toString())
+          }
         }
       }
       try {
@@ -71,13 +85,23 @@ function App() {
       } catch (error) {
         // eslint-disable-next-line
         console.error(error)
+        setError0(error.toString())
         setBusy(false)
       }
     }
   }
 
+  async function compile() {
+    setBusy(true)
+    setIconSpin('fa-spin')
+    await client.solidity.compile(selectFileName)
+    setIconSpin('')
+    setBusy(false)
+  }
+
   function atAddress() {
     // TODO: interact with deployed contract
+    // client.emit('statusChanged', { key: 'succeed', type: 'success', title: 'Documentation ready !' })
   }
 
   function getConstructor(contract) {
@@ -181,43 +205,72 @@ function App() {
           <InputGroup>
             <Form.Control type="text" placeholder="Account" value={account} size="sm" readOnly />
             <InputGroup.Append>
-              <Button className={account !== '' ? 'd-none' : ''} variant="warning" block onClick={connect} size="sm">
-                <small>Connect</small>
-              </Button>
+              <OverlayTrigger
+                placement="left"
+                overlay={<Tooltip>Connect to Wallet</Tooltip>}
+              >
+                <Button className={account !== '' ? 'd-none' : ''} variant="warning" block onClick={connect} size="sm">
+                  <small>Connect</small>
+                </Button>
+              </OverlayTrigger>
             </InputGroup.Append>
           </InputGroup>
           </Form.Group>
           <Networks />
         </Form>
         <hr />
+        <Button
+          variant="primary"
+          onClick={compile}
+          block
+          disabled={selectFileName===''}
+        >
+          <i className={`fas fa-sync ${iconSpin}`} style={{marginRight: '0.3em'}} />
+          <span>
+            Compile&nbsp;{`${selectFileName===''?'<no file selected>':selectFileName.split('/')[selectFileName.split('/').length-1]}`}
+          </span>
+        </Button>
         <MethodParmsForm parms={constructor} />
         <InputGroup className="mb-3">
           <FormControl value={contractAdr0} size="sm" readOnly />
           <InputGroup.Append>
-            <Button
-              variant="warning"
-              size="sm"
-              onClick={() => { window.open(`${NETWORK[network].blockscout}/address/${contractAdr0}`) }}
-              hidden={busy || contractAdr0 === ''}
+            <OverlayTrigger
+              placement="left"
+              overlay={<Tooltip>Open Celo blockscout</Tooltip>}
             >
-              <small>Link</small>
-            </Button>
-            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy || account === ''}>
+              <Button
+                variant="warning"
+                size="sm"
+                onClick={() => { window.open(`${NETWORK[network].blockscout}/address/${contractAdr0}`) }}
+                hidden={busy || contractAdr0 === ''}
+              >
+                <small>Link</small>
+              </Button>
+            </OverlayTrigger>
+            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy || account === '' || data.length === 0}>
               <small>Deploy</small>
             </Button>
           </InputGroup.Append>
         </InputGroup>
+        <Alert variant='danger' onClose={() => setError0('')} dismissible hidden={error0===''}>
+          <small>{error0}</small>
+        </Alert>
         <p className="text-center"><small>OR</small></p>
         <InputGroup className="mb-3">
           <FormControl size="sm" />
           <InputGroup.Append>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={atAddress}
+            <OverlayTrigger
+              placement="left"
+              overlay={<Tooltip>Use deployed Contract address</Tooltip>}
             >
-              <small>At Address</small>
-            </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={atAddress}
+              >
+                <small>At Address</small>
+              </Button>
+            </OverlayTrigger>
           </InputGroup.Append>
         </InputGroup>
         <hr />
