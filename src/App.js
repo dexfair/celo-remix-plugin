@@ -1,7 +1,7 @@
 import React from 'react'
 import { Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
-import { Celo, NETWORK } from "@dexfair/celo-web-signer"
+import { Celo, NETWORKS } from "@dexfair/celo-web-signer"
 import Footer from "./Footer";
 
 function App() {
@@ -26,7 +26,9 @@ function App() {
     async function init () {
       if (!client) {
         setClient(createIframeClient())
-        setCelo(new Celo(network))
+        const temp = new Celo(network)
+        await temp.init(setNetwork, setAccount)
+        setCelo(temp)
       } else {
         await client.onload()
         client.solidity.on('compilationFinished', (fn, source, languageVersion, data) => {
@@ -46,7 +48,6 @@ function App() {
           // console.log(fn)
           setSelectFileName(fn)
         })
-        await celo.init(setNetwork, setAccount)
       }
     }
     init()
@@ -152,15 +153,22 @@ function App() {
     getConstructor(data[e.target.value.replace(` - ${fileName}`, '')])
   }
 
+  function handelNetwork(e) {
+    setBusy(true)
+    setNetwork(e.target.value)
+    celo.changeNetwork(e.target.value)
+    setBusy(false)
+  }
+
   function Networks() {
-    const list = NETWORK
+    const list = NETWORKS
     const items = Object.keys(list).map((key) => <option key={key}>{key}</option> )
     return (
       <Form.Group>
         <Form.Text className="text-muted">
           <small>NETWORK</small>
         </Form.Text>
-        <Form.Control as="select" value={network} onChange={(e) => {setNetwork(e.target.value); celo.changeNetwork(e.target.value);}}>
+        <Form.Control as="select" value={network} onChange={handelNetwork}>
           {items}
         </Form.Control>    
       </Form.Group>
@@ -241,7 +249,7 @@ function App() {
               <Button
                 variant="warning"
                 size="sm"
-                onClick={() => { window.open(`${NETWORK[network].blockscout}/address/${contractAdr0}`) }}
+                onClick={() => { window.open(`${NETWORKS[network].blockscout}/address/${contractAdr0}`) }}
                 hidden={busy || contractAdr0 === ''}
               >
                 <small>Link</small>
