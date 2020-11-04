@@ -7,9 +7,9 @@ The Celo plugin for Ethereum's Remix IDE. It support for deploy and interacting 
 
 # Getting Started
 1. Click RemixIDE Plugin Manager Icon and activate Celo Plugin
-![plugin manager](./pluginmanager.png)
+![plugin manager](./plugin1.png)
 2. Click Celo Plugin Icon
-![celo](./plugin.png)
+![celo](./plugin2.png)
 3. Connect MetaMask Wallet Account
 4. Select Network
 5. Compile your smart contract
