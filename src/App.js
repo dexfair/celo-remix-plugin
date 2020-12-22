@@ -1,8 +1,7 @@
 import React from 'react'
-import { Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Accordion, Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
 import { Celo, NETWORKS } from "@dexfair/celo-web-signer"
-import Footer from "./Footer";
 
 function App() {
   const [client, setClient] = React.useState(null)
@@ -17,7 +16,10 @@ function App() {
   const [iconSpin, setIconSpin] = React.useState('')
   const [contract, setContract] = React.useState('')
   const [contractAdr0, setContractAdr0] = React.useState('')
+  const [contractAdr1, setContractAdr1] = React.useState('')
   const [error0, setError0] = React.useState('')
+  const [error1, setError1] = React.useState('Currently you have no contract instances to interact with.')
+  const [smartContracts, setSmartContracts] = React.useState([])
 
   const [celo, setCelo] = React.useState(null)
   const [busy, setBusy] = React.useState(false)
@@ -26,8 +28,7 @@ function App() {
     async function init () {
       if (!client) {
         setClient(createIframeClient())
-        const temp = new Celo(network)
-        await temp.init(setNetwork, setAccount)
+        const temp = new Celo()
         setCelo(temp)
       } else {
         await client.onload()
@@ -42,7 +43,7 @@ function App() {
         try {
           setSelectFileName(await client.fileManager.getCurrentFile())
         } catch (error) {
-          console.error(error)          
+          console.error(error)
         }
         client.on('fileManager', 'currentFileChanged', (fn) => {
           // console.log(fn)
@@ -54,8 +55,8 @@ function App() {
   })
 
   async function connect() {
-    if (window.ethereum) {
-      window.ethereum.enable();
+    if (!celo.isConnected) {
+      await celo.connect(NETWORKS[network], setNetwork, (accounts) => {setAccount(accounts[0])})
     }
   }
 
@@ -64,30 +65,56 @@ function App() {
       setBusy(true)
       const contractData = data[contract.replace(` - ${fileName}`, '')]
       const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify(contractData.abi)))
-      const args = []
-      if (constructor && constructor.inputs) {
-        for(let i = 0; i < constructor.inputs.length; i++) {
-          if (constructor.inputs[i].type[constructor.inputs[i].type.length-1] === ']') {
-            args.push(JSON.parse(constructor.inputs[i].value))
-          } else {
-            args.push(constructor.inputs[i].value.toString())
-          }
-        }
-      }
+      const temp = getAbiArgs(constructor)
       try {
         const rawTx = {
           from: account,
-          data: newContract.deploy({ data: `0x${contractData.evm.bytecode.object}`, arguments: args }).encodeABI()
+          data: newContract.deploy({ data: `0x${contractData.evm.bytecode.object}`, arguments: temp }).encodeABI()
         }
         const txReceipt = await celo.sendTransaction(rawTx)
         setContractAdr0(txReceipt.contractAddress)
         // console.log(txReceipt.transactionHash)
+        addSmartContracts(txReceipt.contractAddress)
+        // TODO: LOG
         setBusy(false)
       } catch (error) {
         // eslint-disable-next-line
         console.error(error)
-        setError0(error.toString())
+        setError0(error.message ? error.message : error.toString())
         setBusy(false)
+      }
+    }
+  }
+
+  function addSmartContracts(address) {
+    if (contract && celo.kit.web3.utils.isAddress(address)) {
+      try {
+        const contractData = data[contract.replace(` - ${fileName}`, '')]
+        const functionABIs0 = []
+        const functionABIs1 = []
+        contractData.abi.forEach(element=>{
+          if(element.type === 'function') {
+            if(element.stateMutability === 'view') {
+              functionABIs0.push(element)
+            } else {
+              functionABIs1.push(element)
+            }
+          }
+        })
+        const instance = {
+          name: contract.replace(` - ${fileName}`, ''),
+          address: address,
+          abi: functionABIs1.concat(functionABIs0)
+        }
+        setSmartContracts(smartContracts.concat([instance]))
+      } catch (error) {
+        console.error(error)
+      }
+    } else {
+      if (!contract) {
+        setError1('No contract selected.')
+      } else {
+        setError1(`${address} is not address.`)
       }
     }
   }
@@ -100,50 +127,152 @@ function App() {
     setBusy(false)
   }
 
-  function atAddress() {
-    // TODO: interact with deployed contract
-    // client.emit('statusChanged', { key: 'succeed', type: 'success', title: 'Documentation ready !' })
+  function getAbiArgs(singleAbi) {
+    const temp = []
+    if (singleAbi && singleAbi.inputs) {
+      for(let i = 0; i < singleAbi.inputs.length; i++) {
+        if (singleAbi.inputs[i].type[singleAbi.inputs[i].type.length-1] === ']') {
+          temp.push(JSON.parse(singleAbi.inputs[i].value))
+        } else {
+          temp.push(singleAbi.inputs[i].value.toString())
+        }
+      }
+    }
+    return temp
+  }
+
+  function setAbiArgs(singleAbi) {
+    const temp = JSON.parse(JSON.stringify(singleAbi))
+    for (let i = 0; i < temp.inputs.length; i++) {
+      temp.inputs[i].value = ''
+      temp.inputs[i].onChange = (e) => {
+        temp.inputs[i].value = e.target.value
+      }
+    }
+    return temp
   }
 
   function getConstructor(contract) {
     setConstructor({})
     for(let i = 0; i < contract.abi.length; i++) {
       if(contract.abi[i].type === 'constructor') {
-        const temp = JSON.parse(JSON.stringify(contract.abi[i]))
-        for (let i = 0; i < temp.inputs.length; i++) {
-          temp.inputs[i].value = ''
-          temp.inputs[i].onChange = (e) => {
-            temp.inputs[i].value = e.target.value
-          }
-        }
-        setConstructor(temp)
+        setConstructor(setAbiArgs(contract.abi[i]))
         break
       }
     }
   }
 
-  function MethodParmsForm(props) {
-    const list = props.parms.inputs ? props.parms.inputs : []
+  function SmartContractsList() {
+    // remove costructor
+    const items = smartContracts.map((parm, index) => (
+      <div key={`${parm.address}:${index}`}>
+        <Card>
+          <Accordion.Toggle as={Card.Header} eventKey={`${parm.address}:${index}`} size="sm">
+            <strong>{parm.name}</strong>:<small>{parm.address}</small>
+          </Accordion.Toggle>
+          <Accordion.Collapse eventKey={`${parm.address}:${index}`}>
+            <SmartContract parms={parm} />
+          </Accordion.Collapse>
+        </Card>
+        <hr />
+      </div>
+    ))
+    return (
+      <Accordion>
+        {items}
+      </Accordion>
+    )
+  }
+
+  function SmartContract(props) {
+    const list = props.parms.abi ? props.parms.abi : []
     const items = list.map((parm, index) => (
+      <Accordion key={index}>
+        <Card>
+          <Accordion.Toggle as={Card.Header} eventKey={index.toString()}>
+            <small>{parm.name}</small>
+          </Accordion.Toggle>
+          <Accordion.Collapse eventKey={index.toString()}>
+            <Method abi={parm} address={props.parms.address} />
+          </Accordion.Collapse>
+        </Card>
+      </Accordion>
+    ))
+    return (
+      <Form>
+        {items}
+      </Form>
+    )
+  }
+
+  function Method(props) {
+    const [value, setValue] = React.useState('')
+    const [singleAbi, setSingleAbi] = React.useState({})
+    const [busy, setBusy] = React.useState(false)
+    const [error, setError] = React.useState('')
+    if (!singleAbi.inputs) {
+      setSingleAbi(setAbiArgs(props.abi))  
+    }
+    return (
+      <Card.Body>
+        <MethodArgs singleAbi={singleAbi} />
+        <Alert variant='danger' onClose={() => setError('')} dismissible hidden={error===''}>
+          <small>{error}</small>
+        </Alert>
+        <InputGroup className="mb-3">
+          <InputGroup.Prepend>
+            <Button
+              variant={singleAbi.stateMutability === 'view' ? 'primary' : 'warning'}
+              block
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true)
+                const contract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify([props.abi])), props.address)
+                const temp = getAbiArgs(singleAbi)
+                if (props.abi.stateMutability === 'view') {
+                  try {
+                    const txReceipt = await contract.methods[props.abi.name](...temp).call({from: account})
+                    setValue(txReceipt)
+                    // TODO: LOG
+                  } catch (error) {
+                    console.error(error)
+                    setError(error.toString())
+                  }
+                } else {
+                  try {
+                    const txReceipt = await contract.methods[props.abi.name](...temp).send({from: account})
+                    console.log(txReceipt)
+                    // TODO: LOG
+                  } catch (error) {
+                    console.error(error)
+                    setError(error.toString())
+                  }
+                }
+                setBusy(false)
+              }}
+              size="sm"
+            >
+              <small>{props.abi.stateMutability === 'view' ? 'call' : 'transact'}</small>
+            </Button>
+          </InputGroup.Prepend>
+          <FormControl value={value} size="sm" readOnly hidden={props.abi.stateMutability !== 'view'} />
+        </InputGroup>
+      </Card.Body>
+    )
+  }
+
+  function MethodArgs(props) {
+    const list = props.singleAbi.inputs ? props.singleAbi.inputs : []
+    const items = list.map((item, index) => (
       <Form.Group key={index.toString()}>
         <Form.Text className="text-muted">
-          <small>{parm.name}</small>
+          <small>{item.name}</small>
         </Form.Text>
-        <Form.Control type="text" placeholder={parm.type} onChange={parm.onChange} size="sm" />
+        <Form.Control type="text" placeholder={item.type} onChange={item.onChange} size="sm" />
       </Form.Group>))
     return (
       <Form>
-        <Contracts contracts={data} fileName={fileName} />
-        <div className={list.length === 0 ? 'd-none' : ''}>
-          <Card>
-            <Card.Header size="sm">
-              <small>{ (props.parms.name || props.parms.type) }</small>
-            </Card.Header>
-            <Card.Body>
-              { items }
-            </Card.Body>
-          </Card>
-        </div>
+        {items}
       </Form>
     )
   }
@@ -156,7 +285,7 @@ function App() {
   function handelNetwork(e) {
     setBusy(true)
     setNetwork(e.target.value)
-    celo.changeNetwork(e.target.value)
+    celo.changeNetwork(NETWORKS[e.target.value])
     setBusy(false)
   }
 
@@ -170,7 +299,7 @@ function App() {
         </Form.Text>
         <Form.Control as="select" value={network} onChange={handelNetwork}>
           {items}
-        </Form.Control>    
+        </Form.Control>
       </Form.Group>
     )
   }
@@ -238,34 +367,52 @@ function App() {
             Compile&nbsp;{`${selectFileName===''?'<no file selected>':selectFileName.split('/')[selectFileName.split('/').length-1]}`}
           </span>
         </Button>
-        <MethodParmsForm parms={constructor} />
-        <InputGroup className="mb-3">
-          <FormControl value={contractAdr0} size="sm" readOnly />
-          <InputGroup.Append>
-            <OverlayTrigger
-              placement="left"
-              overlay={<Tooltip>Open Celo blockscout</Tooltip>}
-            >
+        <Form>
+          <Contracts contracts={data} fileName={fileName} />
+          <Card hidden={!(constructor && constructor.inputs && constructor.inputs.length > 0)}>
+            <Card.Body>
+              <MethodArgs singleAbi={constructor} />
+            </Card.Body>
+          </Card>
+          <InputGroup className="mb-3">
+            <FormControl value={contractAdr0} placeholder="contract address" size="sm" readOnly />
+            <InputGroup.Append>
+              <OverlayTrigger
+                placement="left"
+                overlay={<Tooltip>Open Celo blockscout</Tooltip>}
+              >
+                <Button
+                  variant="warning"
+                  size="sm"
+                  onClick={() => { window.open(`${NETWORKS[network].blockscout}/address/${contractAdr0}`) }}
+                  hidden={busy || contractAdr0 === ''}
+                >
+                  <small>Link</small>
+                </Button>
+              </OverlayTrigger>
               <Button
                 variant="warning"
+                block
+                onClick={deploy}
                 size="sm"
-                onClick={() => { window.open(`${NETWORKS[network].blockscout}/address/${contractAdr0}`) }}
-                hidden={busy || contractAdr0 === ''}
+                disabled={busy || account === '' || data.length === 0}
               >
-                <small>Link</small>
+                <small>Deloy</small>
               </Button>
-            </OverlayTrigger>
-            <Button variant="warning" block onClick={deploy} size="sm" disabled={busy || account === '' || data.length === 0}>
-              <small>Deploy</small>
-            </Button>
-          </InputGroup.Append>
-        </InputGroup>
+            </InputGroup.Append>
+          </InputGroup>
+        </Form>
         <Alert variant='danger' onClose={() => setError0('')} dismissible hidden={error0===''}>
           <small>{error0}</small>
         </Alert>
         <p className="text-center"><small>OR</small></p>
         <InputGroup className="mb-3">
-          <FormControl size="sm" />
+          <FormControl
+            value={contractAdr1}
+            placeholder="contract address"
+            onChange={(e) => {setContractAdr1(e.target.value)}}
+            size="sm"
+          />
           <InputGroup.Append>
             <OverlayTrigger
               placement="left"
@@ -274,7 +421,8 @@ function App() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={atAddress}
+                disabled={busy || account === '' || data.length === 0}
+                onClick={()=>{addSmartContracts(contractAdr1)}}
               >
                 <small>At Address</small>
               </Button>
@@ -283,10 +431,11 @@ function App() {
         </InputGroup>
         <hr />
         <p className="text-center"><small>Deployed Contracts</small></p>
+        <Alert variant='warning' hidden={smartContracts.length>0}>
+          <small>{error1}</small>
+        </Alert>
+        <SmartContractsList />
       </Container>
-      <Footer
-        children={<small>by dexfair</small>}
-      />
     </div>
   )
 }
