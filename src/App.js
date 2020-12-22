@@ -1,5 +1,5 @@
 import React from 'react'
-import { Accordion, Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Accordion, Alert, Button, Card, Container, Form, FormControl, InputGroup, Nav, Navbar, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
 import { Celo, NETWORKS } from "@dexfair/celo-web-signer"
 
@@ -63,7 +63,7 @@ function App() {
   async function deploy() {
     if (!busy) {
       setBusy(true)
-      const contractData = data[contract.replace(` - ${fileName}`, '')]
+      const contractData = data[contract]
       const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify(contractData.abi)))
       const temp = getAbiArgs(constructor)
       try {
@@ -89,7 +89,7 @@ function App() {
   function addSmartContracts(address) {
     if (contract && celo.kit.web3.utils.isAddress(address)) {
       try {
-        const contractData = data[contract.replace(` - ${fileName}`, '')]
+        const contractData = data[contract]
         const functionABIs0 = []
         const functionABIs1 = []
         contractData.abi.forEach(element=>{
@@ -102,7 +102,7 @@ function App() {
           }
         })
         const instance = {
-          name: contract.replace(` - ${fileName}`, ''),
+          name: contract,
           address: address,
           abi: functionABIs1.concat(functionABIs0)
         }
@@ -152,29 +152,55 @@ function App() {
     return temp
   }
 
-  function getConstructor(contract) {
+  function getConstructor(newContract) {
     setConstructor({})
-    for(let i = 0; i < contract.abi.length; i++) {
-      if(contract.abi[i].type === 'constructor') {
-        setConstructor(setAbiArgs(contract.abi[i]))
+    for(let i = 0; i < newContract.abi.length; i++) {
+      if(newContract.abi[i].type === 'constructor') {
+        setConstructor(setAbiArgs(newContract.abi[i]))
         break
       }
     }
   }
 
   function SmartContractsList() {
-    // remove costructor
+    console.log('SmartContractsList')
     const items = smartContracts.map((parm, index) => (
       <div key={`${parm.address}:${index}`}>
-        <Card>
-          <Accordion.Toggle as={Card.Header} eventKey={`${parm.address}:${index}`} size="sm">
-            <strong>{parm.name}</strong>:<small>{parm.address}</small>
-          </Accordion.Toggle>
+        <Card className="mb-3">
+          <Card.Header className="p-1">
+            <Accordion.Toggle
+              as={Button} 
+              size="sm"
+              variant="link"
+              eventKey={`${parm.address}:${index}`}
+              hidden={parm.abi.length===0}
+            >
+              <i class="far fa-plus-square" />
+            </Accordion.Toggle>
+            <strong className="align-middle">
+              {parm.name}
+            </strong>
+            <Button
+              className="float-right align-middle"
+              size="sm"
+              variant="link"
+              onClick={() => { window.open(`${NETWORKS[network].blockscout}/address/${parm.address}`) }}
+            >
+              <i class="fas fa-external-link-alt" />
+            </Button>
+            <Button
+              className="float-right align-middle"
+              size="sm"
+              variant="link"
+              onClick={() => { console.log('remove', `${parm.address}:${index}`) }}
+            >
+              <i class="fas fa-trash-alt" />
+            </Button>
+          </Card.Header>
           <Accordion.Collapse eventKey={`${parm.address}:${index}`}>
             <SmartContract parms={parm} />
           </Accordion.Collapse>
         </Card>
-        <hr />
       </div>
     ))
     return (
@@ -185,11 +211,12 @@ function App() {
   }
 
   function SmartContract(props) {
+    console.log('SmartContract', props)
     const list = props.parms.abi ? props.parms.abi : []
     const items = list.map((parm, index) => (
       <Accordion key={index}>
         <Card>
-          <Accordion.Toggle as={Card.Header} eventKey={index.toString()}>
+          <Accordion.Toggle as={Card.Header} eventKey={index.toString()} className="p-1">
             <small>{parm.name}</small>
           </Accordion.Toggle>
           <Accordion.Collapse eventKey={index.toString()}>
@@ -206,6 +233,7 @@ function App() {
   }
 
   function Method(props) {
+    console.log('Method', props)
     const [value, setValue] = React.useState('')
     const [singleAbi, setSingleAbi] = React.useState({})
     const [busy, setBusy] = React.useState(false)
@@ -214,7 +242,7 @@ function App() {
       setSingleAbi(setAbiArgs(props.abi))  
     }
     return (
-      <Card.Body>
+      <Card.Body className="p-2">
         <MethodArgs singleAbi={singleAbi} />
         <Alert variant='danger' onClose={() => setError('')} dismissible hidden={error===''}>
           <small>{error}</small>
@@ -227,11 +255,11 @@ function App() {
               disabled={busy}
               onClick={async () => {
                 setBusy(true)
-                const contract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify([props.abi])), props.address)
+                const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify([props.abi])), props.address)
                 const temp = getAbiArgs(singleAbi)
                 if (props.abi.stateMutability === 'view') {
                   try {
-                    const txReceipt = await contract.methods[props.abi.name](...temp).call({from: account})
+                    const txReceipt = await newContract.methods[props.abi.name](...temp).call({from: account})
                     setValue(txReceipt)
                     // TODO: LOG
                   } catch (error) {
@@ -240,7 +268,7 @@ function App() {
                   }
                 } else {
                   try {
-                    const txReceipt = await contract.methods[props.abi.name](...temp).send({from: account})
+                    const txReceipt = await newContract.methods[props.abi.name](...temp).send({from: account})
                     console.log(txReceipt)
                     // TODO: LOG
                   } catch (error) {
@@ -277,27 +305,20 @@ function App() {
     )
   }
 
-  function handelContract(e) {
-    setContract(e.target.value)
-    getConstructor(data[e.target.value.replace(` - ${fileName}`, '')])
-  }
-
-  function handelNetwork(e) {
-    setBusy(true)
-    setNetwork(e.target.value)
-    celo.changeNetwork(NETWORKS[e.target.value])
-    setBusy(false)
-  }
-
   function Networks() {
     const list = NETWORKS
-    const items = Object.keys(list).map((key) => <option key={key}>{key}</option> )
+    const items = Object.keys(list).map((key) => <option key={key} value={key}>{key}</option> )
     return (
       <Form.Group>
         <Form.Text className="text-muted">
           <small>NETWORK</small>
         </Form.Text>
-        <Form.Control as="select" value={network} onChange={handelNetwork}>
+        <Form.Control as="select" value={network} onChange={(e) => {
+          setBusy(true)
+          setNetwork(e.target.value)
+          celo.changeNetwork(NETWORKS[e.target.value])
+          setBusy(false)
+        }}>
           {items}
         </Form.Control>
       </Form.Group>
@@ -306,13 +327,16 @@ function App() {
 
   function Contracts(props) {
     const list = props.contracts
-    const items = Object.keys(list).map((key) => <option key={key}>{`${key} - ${props.fileName}`}</option> )
+    const items = Object.keys(list).map((key) => <option key={key} value={key}>{`${key} - ${props.fileName}`}</option> )
     return (
       <Form.Group>
         <Form.Text className="text-muted">
           <small>CONTRACT</small>
         </Form.Text>
-        <Form.Control as="select" value={contract} onChange={handelContract}>
+        <Form.Control as="select" value={contract} onChange={(e) => {
+          setContract(e.target.value)
+          getConstructor(data[e.target.value])
+        }}>
           {items}
         </Form.Control>
       </Form.Group>
@@ -370,7 +394,7 @@ function App() {
         <Form>
           <Contracts contracts={data} fileName={fileName} />
           <Card hidden={!(constructor && constructor.inputs && constructor.inputs.length > 0)}>
-            <Card.Body>
+            <Card.Body className='p-2'>
               <MethodArgs singleAbi={constructor} />
             </Card.Body>
           </Card>
