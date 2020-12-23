@@ -1,5 +1,5 @@
 import React from 'react'
-import { Accordion, Alert, Button, Card, Container, Form, FormControl, InputGroup, Nav, Navbar, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Accordion, Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
 import { Celo, NETWORKS } from "@dexfair/celo-web-signer"
 
@@ -163,7 +163,6 @@ function App() {
   }
 
   function SmartContractsList() {
-    console.log('SmartContractsList')
     const items = smartContracts.map((parm, index) => (
       <div key={`${parm.address}:${index}`}>
         <Card className="mb-3">
@@ -211,7 +210,6 @@ function App() {
   }
 
   function SmartContract(props) {
-    console.log('SmartContract', props)
     const list = props.parms.abi ? props.parms.abi : []
     const items = list.map((parm, index) => (
       <Accordion key={index}>
@@ -233,14 +231,11 @@ function App() {
   }
 
   function Method(props) {
-    console.log('Method', props)
     const [value, setValue] = React.useState('')
-    const [singleAbi, setSingleAbi] = React.useState({})
     const [busy, setBusy] = React.useState(false)
     const [error, setError] = React.useState('')
-    if (!singleAbi.inputs) {
-      setSingleAbi(setAbiArgs(props.abi))  
-    }
+    const singleAbi = setAbiArgs(props.abi)
+
     return (
       <Card.Body className="p-2">
         <MethodArgs singleAbi={singleAbi} />
