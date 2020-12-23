@@ -1,7 +1,8 @@
 import React from 'react'
-import { Accordion, Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Alert, Button, Card, Container, Form, FormControl, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { createIframeClient } from "@remixproject/plugin"
 import { Celo, NETWORKS } from "@dexfair/celo-web-signer"
+import { getAbiArgs, setAbiArgs, MethodArgs, SmartContractsList } from "./components/SmartContractsList"
 
 function App() {
   const [client, setClient] = React.useState(null)
@@ -119,37 +120,17 @@ function App() {
     }
   }
 
+  function removeContract (index) {
+    setSmartContracts(smartContracts.slice(0, index).concat(smartContracts.slice(index+1)))
+    setError1('Currently you have no contract instances to interact with.')
+  }
+
   async function compile() {
     setBusy(true)
     setIconSpin('fa-spin')
     await client.solidity.compile(selectFileName)
     setIconSpin('')
     setBusy(false)
-  }
-
-  function getAbiArgs(singleAbi) {
-    const temp = []
-    if (singleAbi && singleAbi.inputs) {
-      for(let i = 0; i < singleAbi.inputs.length; i++) {
-        if (singleAbi.inputs[i].type[singleAbi.inputs[i].type.length-1] === ']') {
-          temp.push(JSON.parse(singleAbi.inputs[i].value))
-        } else {
-          temp.push(singleAbi.inputs[i].value.toString())
-        }
-      }
-    }
-    return temp
-  }
-
-  function setAbiArgs(singleAbi) {
-    const temp = JSON.parse(JSON.stringify(singleAbi))
-    for (let i = 0; i < temp.inputs.length; i++) {
-      temp.inputs[i].value = ''
-      temp.inputs[i].onChange = (e) => {
-        temp.inputs[i].value = e.target.value
-      }
-    }
-    return temp
   }
 
   function getConstructor(newContract) {
@@ -160,144 +141,6 @@ function App() {
         break
       }
     }
-  }
-
-  function SmartContractsList() {
-    const items = smartContracts.map((parm, index) => (
-      <div key={`${parm.address}:${index}`}>
-        <Card className="mb-3">
-          <Card.Header className="p-1">
-            <Accordion.Toggle
-              as={Button} 
-              size="sm"
-              variant="link"
-              eventKey={`${parm.address}:${index}`}
-              hidden={parm.abi.length===0}
-            >
-              <i class="far fa-plus-square" />
-            </Accordion.Toggle>
-            <strong className="align-middle">
-              {parm.name}
-            </strong>
-            <Button
-              className="float-right align-middle"
-              size="sm"
-              variant="link"
-              onClick={() => { window.open(`${NETWORKS[network].blockscout}/address/${parm.address}`) }}
-            >
-              <i class="fas fa-external-link-alt" />
-            </Button>
-            <Button
-              className="float-right align-middle"
-              size="sm"
-              variant="link"
-              onClick={() => { console.log('remove', `${parm.address}:${index}`) }}
-            >
-              <i class="fas fa-trash-alt" />
-            </Button>
-          </Card.Header>
-          <Accordion.Collapse eventKey={`${parm.address}:${index}`}>
-            <SmartContract parms={parm} />
-          </Accordion.Collapse>
-        </Card>
-      </div>
-    ))
-    return (
-      <Accordion>
-        {items}
-      </Accordion>
-    )
-  }
-
-  function SmartContract(props) {
-    const list = props.parms.abi ? props.parms.abi : []
-    const items = list.map((parm, index) => (
-      <Accordion key={index}>
-        <Card>
-          <Accordion.Toggle as={Card.Header} eventKey={index.toString()} className="p-1">
-            <small>{parm.name}</small>
-          </Accordion.Toggle>
-          <Accordion.Collapse eventKey={index.toString()}>
-            <Method abi={parm} address={props.parms.address} />
-          </Accordion.Collapse>
-        </Card>
-      </Accordion>
-    ))
-    return (
-      <Form>
-        {items}
-      </Form>
-    )
-  }
-
-  function Method(props) {
-    const [value, setValue] = React.useState('')
-    const [busy, setBusy] = React.useState(false)
-    const [error, setError] = React.useState('')
-    const singleAbi = setAbiArgs(props.abi)
-
-    return (
-      <Card.Body className="p-2">
-        <MethodArgs singleAbi={singleAbi} />
-        <Alert variant='danger' onClose={() => setError('')} dismissible hidden={error===''}>
-          <small>{error}</small>
-        </Alert>
-        <InputGroup className="mb-3">
-          <InputGroup.Prepend>
-            <Button
-              variant={singleAbi.stateMutability === 'view' ? 'primary' : 'warning'}
-              block
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true)
-                const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify([props.abi])), props.address)
-                const temp = getAbiArgs(singleAbi)
-                if (props.abi.stateMutability === 'view') {
-                  try {
-                    const txReceipt = await newContract.methods[props.abi.name](...temp).call({from: account})
-                    setValue(txReceipt)
-                    // TODO: LOG
-                  } catch (error) {
-                    console.error(error)
-                    setError(error.toString())
-                  }
-                } else {
-                  try {
-                    const txReceipt = await newContract.methods[props.abi.name](...temp).send({from: account})
-                    console.log(txReceipt)
-                    // TODO: LOG
-                  } catch (error) {
-                    console.error(error)
-                    setError(error.toString())
-                  }
-                }
-                setBusy(false)
-              }}
-              size="sm"
-            >
-              <small>{props.abi.stateMutability === 'view' ? 'call' : 'transact'}</small>
-            </Button>
-          </InputGroup.Prepend>
-          <FormControl value={value} size="sm" readOnly hidden={props.abi.stateMutability !== 'view'} />
-        </InputGroup>
-      </Card.Body>
-    )
-  }
-
-  function MethodArgs(props) {
-    const list = props.singleAbi.inputs ? props.singleAbi.inputs : []
-    const items = list.map((item, index) => (
-      <Form.Group key={index.toString()}>
-        <Form.Text className="text-muted">
-          <small>{item.name}</small>
-        </Form.Text>
-        <Form.Control type="text" placeholder={item.type} onChange={item.onChange} size="sm" />
-      </Form.Group>))
-    return (
-      <Form>
-        {items}
-      </Form>
-    )
   }
 
   function Networks() {
@@ -453,7 +296,7 @@ function App() {
         <Alert variant='warning' hidden={smartContracts.length>0}>
           <small>{error1}</small>
         </Alert>
-        <SmartContractsList />
+        <SmartContractsList smartContracts={smartContracts} network={network} celo={celo} removeContract={removeContract} />
       </Container>
     </div>
   )
