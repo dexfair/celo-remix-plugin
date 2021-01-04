@@ -1,22 +1,22 @@
 {
   "files": {
     "main.css": "/celo-remix-plugin/static/css/main.bfcef086.chunk.css",
-    "main.js": "/celo-remix-plugin/static/js/main.24dadf3e.chunk.js",
-    "main.js.map": "/celo-remix-plugin/static/js/main.24dadf3e.chunk.js.map",
+    "main.js": "/celo-remix-plugin/static/js/main.dda1637d.chunk.js",
+    "main.js.map": "/celo-remix-plugin/static/js/main.dda1637d.chunk.js.map",
     "runtime-main.js": "/celo-remix-plugin/static/js/runtime-main.0132abb1.js",
     "runtime-main.js.map": "/celo-remix-plugin/static/js/runtime-main.0132abb1.js.map",
-    "static/js/2.0e506a9b.chunk.js": "/celo-remix-plugin/static/js/2.0e506a9b.chunk.js",
-    "static/js/2.0e506a9b.chunk.js.map": "/celo-remix-plugin/static/js/2.0e506a9b.chunk.js.map",
+    "static/js/2.dc1a7e6f.chunk.js": "/celo-remix-plugin/static/js/2.dc1a7e6f.chunk.js",
+    "static/js/2.dc1a7e6f.chunk.js.map": "/celo-remix-plugin/static/js/2.dc1a7e6f.chunk.js.map",
     "static/js/3.d1938b35.chunk.js": "/celo-remix-plugin/static/js/3.d1938b35.chunk.js",
     "static/js/3.d1938b35.chunk.js.map": "/celo-remix-plugin/static/js/3.d1938b35.chunk.js.map",
     "index.html": "/celo-remix-plugin/index.html",
     "static/css/main.bfcef086.chunk.css.map": "/celo-remix-plugin/static/css/main.bfcef086.chunk.css.map",
-    "static/js/2.0e506a9b.chunk.js.LICENSE.txt": "/celo-remix-plugin/static/js/2.0e506a9b.chunk.js.LICENSE.txt"
+    "static/js/2.dc1a7e6f.chunk.js.LICENSE.txt": "/celo-remix-plugin/static/js/2.dc1a7e6f.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.0132abb1.js",
-    "static/js/2.0e506a9b.chunk.js",
+    "static/js/2.dc1a7e6f.chunk.js",
     "static/css/main.bfcef086.chunk.css",
-    "static/js/main.24dadf3e.chunk.js"
+    "static/js/main.dda1637d.chunk.js"
   ]
 }
