@@ -34,7 +34,7 @@ function App() {
       } else {
         await client.onload()
         client.solidity.on('compilationFinished', (fn, source, languageVersion, data) => {
-          // console.log(fn, source, languageVersion, data)
+          console.log(fn, source, languageVersion, data)
           setFileName(fn)
           setLanguage(languageVersion)
           setData(data.contracts[fn])
@@ -42,7 +42,7 @@ function App() {
           getConstructor(data.contracts[fn][Object.keys(data.contracts[fn])[0]])
         })
         try {
-          setSelectFileName(await client.fileManager.getCurrentFile())
+          setSelectFileName((await client.fileManager.getCurrentFile()))
         } catch (error) {
           console.error(error)
         }
