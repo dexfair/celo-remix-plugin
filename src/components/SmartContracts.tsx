@@ -83,11 +83,15 @@ const DrawMethod: React.FunctionComponent<InterfaceDrawMethodProps> = (props) =>
 									const txReceipt = abi.name
 										? await newContract.methods[abi.name](...parms).call({ from: accounts[0] })
 										: null;
-									setValue(txReceipt);
+									if (typeof txReceipt === 'object') {
+										setSuccess(JSON.stringify(txReceipt, null, 4));
+									} else {
+										setValue(txReceipt);
+									}
 									// TODO: LOG
 								} catch (e) {
 									// console.error(error)
-									setError(e.toString());
+									setError(e.message ? e.message : e.toString());
 								}
 							} else {
 								try {
@@ -101,7 +105,7 @@ const DrawMethod: React.FunctionComponent<InterfaceDrawMethodProps> = (props) =>
 									// TODO: LOG
 								} catch (e) {
 									// console.error(error)
-									setError(e.toString());
+									setError(e.message ? e.message : e.toString());
 								}
 							}
 							// setBusy(false)

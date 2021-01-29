@@ -27,7 +27,11 @@ const Method: React.FunctionComponent<InterfaceProps> = (props) => {
 					name={item.name}
 					placeholder={item.type}
 					onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-						setArgs(event.target.name, event.target.value);
+						if (event.target.value[0] === '[') {
+							setArgs(event.target.name, JSON.parse(event.target.value));
+						} else {
+							setArgs(event.target.name, event.target.value);
+						}
 					}}
 				/>
 			</React.Fragment>
