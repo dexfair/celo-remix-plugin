@@ -1,6 +1,10 @@
 import React from 'react';
 import { Alert, Button, Card, Form, InputGroup } from 'react-bootstrap';
+import copy from 'copy-to-clipboard';
 import { AbiInput, AbiItem } from 'web3-utils';
+import type { Api } from '@remixproject/plugin-utils';
+import { Client } from '@remixproject/plugin';
+import { IRemixApi } from '@remixproject/plugin-api';
 import { createClient } from '@remixproject/plugin-iframe';
 import { Celo } from '@dexfair/celo-web-signer';
 import { InterfaceContract } from './Types';
@@ -37,7 +41,7 @@ interface InterfaceProps {
 }
 
 const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
-	const [client, setClient] = React.useState<any>(null);
+	const [client, setClient] = React.useState<Client<Api, Readonly<IRemixApi>> | undefined | null>(null);
 	const [fileName, setFileName] = React.useState<string>('');
 	const [iconSpin, setIconSpin] = React.useState<string>('');
 	const [contracts, setContracts] = React.useState<{ fileName: string; data: { [key: string]: any } }>({
@@ -57,7 +61,7 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 			const temp = createClient();
 			await temp.onload();
 			temp.solidity.on('compilationFinished', (fn: string, source: any, languageVersion: string, data: any) => {
-				// console.log(fn, source, languageVersion, data)
+				// console.log(fn, source, languageVersion, data);
 				setContracts({ fileName: fn, data: data.contracts[fn] });
 				// eslint-disable-next-line
 				select(
@@ -78,12 +82,12 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 		}
 		init();
 		// eslint-disable-next-line
-	}, []);
+  }, []);
 
 	async function compile() {
 		setBusy(true);
 		setIconSpin('fa-spin');
-		await client.solidity.compile(fileName);
+		await client?.solidity.compile(fileName);
 		setIconSpin('');
 		setBusy(false);
 	}
@@ -110,6 +114,7 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 		if (!busy && celo.isConnected) {
 			gtag('deploy');
 			setBusy(true);
+			setAddress('');
 			try {
 				const newContract = new celo.kit.web3.eth.Contract(
 					JSON.parse(JSON.stringify(contracts.data[contractName].abi))
@@ -148,20 +153,37 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 		const value = contracts.fileName.split('/')[contracts.fileName.split('/').length - 1];
 		const items = Object.keys(data).map((key) => <option key={key} value={key}>{`${key} - ${value}`}</option>);
 		return (
-			<Form.Group>
-				<Form.Text className="text-muted">
-					<small>CONTRACT</small>
-				</Form.Text>
-				<Form.Control
-					as="select"
-					value={contractName}
-					onChange={(e) => {
-						select(e.target.value);
-					}}
-				>
-					{items}
-				</Form.Control>
-			</Form.Group>
+			<Form>
+				<Form.Group>
+					<Form.Text className="text-muted">
+						<small>CONTRACT</small>
+						<Button
+							variant="link"
+							size="sm"
+							className="mt-0 pt-0 float-right"
+							disabled={!contracts.data[contractName]}
+							onClick={() => {
+								if (contracts.data[contractName]) {
+									copy(JSON.stringify(contracts.data[contractName].abi, null, 4));
+								}
+							}}
+						>
+							<i className="far fa-copy" />
+						</Button>
+					</Form.Text>
+					<InputGroup>
+						<Form.Control
+							as="select"
+							value={contractName}
+							onChange={(e) => {
+								select(e.target.value);
+							}}
+						>
+							{items}
+						</Form.Control>
+					</InputGroup>
+				</Form.Group>
+			</Form>
 		);
 	}
 
@@ -181,9 +203,8 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 					{`${fileName === '' ? '<no file selected>' : fileName.split('/')[fileName.split('/').length - 1]}`}
 				</span>
 			</Button>
-			<Form>
-				<Contracts />
-			</Form>
+			<hr />
+			<Contracts />
 			<Card>
 				<Card.Header className="p-2">Deploy</Card.Header>
 				<Card.Body className="py-1 px-2">

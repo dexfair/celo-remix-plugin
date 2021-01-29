@@ -1787,7 +1787,7 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.6.0.tgz#f022195afdfc942e088ee2101285a1d31c7d727f"
   integrity sha512-cPqjjzuFWNK3BSKLm0abspP0sp/IGOli4p5I5fKFAzdS8fvjdOwDCfZqAaIiXd9lPkOWi3SUUfZof3hEb7J/uw==
 
-"@remixproject/plugin-api@0.3.7":
+"@remixproject/plugin-api@0.3.7", "@remixproject/plugin-api@^0.3.7":
   version "0.3.7"
   resolved "https://registry.yarnpkg.com/@remixproject/plugin-api/-/plugin-api-0.3.7.tgz#34a9ec77d989a7ce34700762a12c17167af636ed"
   integrity sha512-efw2qELFzlO4R62QAQM+5YbycEqzlp/lyTjIm0dKiVyP1suz4UdrFAPIYMPFIAlrHDB0qMhCxe+W/HXLZCcvsg==
@@ -1810,7 +1810,7 @@
   dependencies:
     tslib "2.0.1"
 
-"@remixproject/plugin@0.3.7":
+"@remixproject/plugin@0.3.7", "@remixproject/plugin@^0.3.7":
   version "0.3.7"
   resolved "https://registry.yarnpkg.com/@remixproject/plugin/-/plugin-0.3.7.tgz#be8268ee7ea9fb780905df4b24780e8a64bb8ba8"
   integrity sha512-FrRUKaZgsxAAkYziAKjsMVezd2rtyklHA+Y+OlEtHfICN0NJXjnaSy3Tz5LGRA0MWqnvki6vIw/ZHr8T4zknZQ==
@@ -4351,6 +4351,13 @@ copy-descriptor@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz#676f6eb3c39997c2ee1ac3a924fd6124748f578d"
   integrity sha1-Z29us8OZl8LuGsOpJP1hJHSPV40=
+
+copy-to-clipboard@^3.3.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/copy-to-clipboard/-/copy-to-clipboard-3.3.1.tgz#115aa1a9998ffab6196f93076ad6da3b913662ae"
+  integrity sha512-i13qo6kIHTTpCm8/Wup+0b1mVWETvu2kIMzKoK8FpkLkFxlt0znUAHcMzox+T8sPlqtZXq3CulEjQHsYiGFJUw==
+  dependencies:
+    toggle-selection "^1.0.6"
 
 core-js-compat@^3.6.2, core-js-compat@^3.7.0:
   version "3.7.0"
@@ -12443,6 +12450,11 @@ to-regex@^3.0.1, to-regex@^3.0.2:
     extend-shallow "^3.0.2"
     regex-not "^1.0.2"
     safe-regex "^1.1.0"
+
+toggle-selection@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/toggle-selection/-/toggle-selection-1.0.6.tgz#6e45b1263f2017fa0acc7d89d78b15b8bf77da32"
+  integrity sha1-bkWxJj8gF/oKzH2J14sVuL932jI=
 
 toidentifier@1.0.0:
   version "1.0.0"

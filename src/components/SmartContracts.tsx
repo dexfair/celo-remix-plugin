@@ -1,5 +1,6 @@
 import React from 'react';
 import { Alert, Accordion, Button, Card, Form, InputGroup } from 'react-bootstrap';
+import copy from 'copy-to-clipboard';
 import { CSSTransition } from 'react-transition-group';
 import { AbiInput, AbiItem } from 'web3-utils';
 import { Celo } from '@dexfair/celo-web-signer';
@@ -107,6 +108,29 @@ const DrawMethod: React.FunctionComponent<InterfaceDrawMethodProps> = (props) =>
 						}}
 					>
 						<small>{abi.stateMutability === 'view' || abi.stateMutability === 'pure' ? 'call' : 'transact'}</small>
+					</Button>
+					<Button
+						variant={buttonVariant(abi.stateMutability)}
+						size="sm"
+						className="mt-0 pt-0 float-right"
+						onClick={() => {
+							if (abi.name) {
+								try {
+									const parms: string[] = [];
+									abi.inputs?.forEach((item: AbiInput) => {
+										if (args[item.name]) {
+											parms.push(args[item.name]);
+										}
+									});
+									const newContract = new celo.kit.web3.eth.Contract(JSON.parse(JSON.stringify([abi])), address);
+									copy(newContract.methods[abi.name](...parms).encodeABI());
+								} catch (e) {
+									console.log(e.toString());
+								}
+							}
+						}}
+					>
+						<i className="far fa-copy" />
 					</Button>
 				</InputGroup.Prepend>
 				<Form.Control
