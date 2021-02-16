@@ -9,6 +9,7 @@ const App: React.FunctionComponent = () => {
 	const [account, setAccount] = React.useState<string>('');
 	const [balance, setBalance] = React.useState<string>('');
 	const [network, setNetwork] = React.useState<string>('Mainnet');
+	const [disabledNetSelect, setDisabledNetSelect] = React.useState<boolean>(true);
 	const [blockscout, setBlockscout] = React.useState<string>('');
 	const [busy, setBusy] = React.useState<boolean>(false);
 	const [celo] = React.useState<Celo>(new Celo(NETWORKS.Mainnet));
@@ -16,20 +17,47 @@ const App: React.FunctionComponent = () => {
 	const [contracts, setContracts] = React.useState<InterfaceContract[]>([]);
 	const [selected, setSelected] = React.useState<InterfaceContract | null>(null);
 
+	React.useEffect(() => {
+		updateBalance(account);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [account, network]);
+
 	async function connect() {
 		if (!celo.isConnected) {
 			setBusy(true);
+			const support = await celo.getSupport();
 			setBlockscout(NETWORKS[network].blockscout || '');
-			const result = await celo.connectMetaMask((type: string, accounts: string[]) => {
-				setAccount(accounts[0]);
-				updateBalance(accounts[0]);
-			});
-			if (result && (window as { [key: string]: any }).gtag) {
-				const { gtag } = window as { [key: string]: any };
-				gtag('event', 'login', {
-					method: 'MetaMask',
+
+			if (support.celo) {
+				const result = await celo.connectCelo(
+					(type: string, accounts: string[]) => {
+						setBalance('');
+						setAccount(accounts[0]);
+					},
+					(networkName: string) => {
+						setBalance('');
+						setNetwork(networkName);
+					}
+				);
+				if (result && (window as { [key: string]: any }).gtag) {
+					const { gtag } = window as { [key: string]: any };
+					gtag('event', 'login', {
+						method: 'Celo',
+					});
+				}
+			} else {
+				const result = await celo.connectMetaMask((type: string, accounts: string[]) => {
+					setAccount(accounts[0]);
 				});
+				if (result && (window as { [key: string]: any }).gtag) {
+					const { gtag } = window as { [key: string]: any };
+					gtag('event', 'login', {
+						method: 'MetaMask',
+					});
+				}
+				setDisabledNetSelect(false);
 			}
+
 			setBusy(false);
 		}
 	}
@@ -42,14 +70,15 @@ const App: React.FunctionComponent = () => {
 	}
 
 	async function changeNetwork(e: React.ChangeEvent<HTMLInputElement>) {
-		setBusy(true);
-		setContracts([]);
-		const temp = e.target.value;
-		setNetwork(temp);
-		setBlockscout(NETWORKS[temp].blockscout || '');
-		await celo.changeNetwork(NETWORKS[temp]);
-		await updateBalance(account);
-		setBusy(false);
+		if (!disabledNetSelect) {
+			setBusy(true);
+			setContracts([]);
+			const temp = e.target.value;
+			setBlockscout(NETWORKS[temp].blockscout || '');
+			await celo.changeNetwork(NETWORKS[temp]);
+			setNetwork(temp);
+			setBusy(false);
+		}
 	}
 
 	function addNewContract(contract: InterfaceContract) {
@@ -68,7 +97,12 @@ const App: React.FunctionComponent = () => {
 				<Form.Text className="text-muted">
 					<small>NETWORK</small>
 				</Form.Text>
-				<Form.Control as="select" value={network} onChange={changeNetwork} disabled={!celo.isConnected}>
+				<Form.Control
+					as="select"
+					value={network}
+					onChange={changeNetwork}
+					disabled={!celo.isConnected || disabledNetSelect}
+				>
 					{items}
 				</Form.Control>
 			</Form.Group>
@@ -106,7 +140,7 @@ const App: React.FunctionComponent = () => {
 							<small>BALANCE (CELO)</small>
 						</Form.Text>
 						<InputGroup>
-							<Form.Control type="text" placeholder="0.0" value={balance} size="sm" readOnly />
+							<Form.Control type="text" placeholder="Account" value={balance} size="sm" readOnly />
 						</InputGroup>
 					</Form.Group>
 					<Networks />
@@ -114,6 +148,7 @@ const App: React.FunctionComponent = () => {
 				<hr />
 				<Compiler
 					celo={celo}
+					network={network}
 					gtag={(name: string) => {
 						const { gtag } = window as { [key: string]: any };
 						gtag('event', name, { network });

@@ -96,7 +96,11 @@ const DrawMethod: React.FunctionComponent<InterfaceDrawMethodProps> = (props) =>
 							} else {
 								try {
 									const txReceipt = abi.name
-										? await newContract.methods[abi.name](...parms).send({ from: accounts[0] })
+										? await celo.sendTransaction({
+												from: accounts[0],
+												to: address,
+												data: newContract.methods[abi.name](...parms).encodeABI(),
+										  })
 										: null;
 									// console.log(txReceipt)
 									setError('');

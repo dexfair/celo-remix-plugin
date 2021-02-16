@@ -32,6 +32,7 @@ function getArguments(abi: AbiItem | null, args: { [key: string]: string }) {
 
 interface InterfaceProps {
 	celo: Celo;
+	network: string;
 	gtag: (name: string) => void;
 	busy: boolean;
 	setBusy: (state: boolean) => void;
@@ -40,7 +41,17 @@ interface InterfaceProps {
 	updateBalance: (address: string) => void;
 }
 
-const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
+const Compiler: React.FunctionComponent<InterfaceProps> = ({
+	celo,
+	network,
+	gtag,
+	busy,
+	setBusy,
+	addNewContract,
+	setSelected,
+	updateBalance,
+}) => {
+	const [initialised, setInitialised] = React.useState<boolean>(false);
 	const [client, setClient] = React.useState<Client<Api, Readonly<IRemixApi>> | undefined | null>(null);
 	const [fileName, setFileName] = React.useState<string>('');
 	const [iconSpin, setIconSpin] = React.useState<string>('');
@@ -54,10 +65,9 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 	const [address, setAddress] = React.useState<string>('');
 	const [error, setError] = React.useState<string>('');
 
-	const { celo, gtag, busy, setBusy, addNewContract, setSelected, updateBalance } = props;
-
 	React.useEffect(() => {
 		async function init() {
+			setInitialised(true);
 			const temp = createClient();
 			await temp.onload();
 			temp.solidity.on('compilationFinished', (fn: string, source: any, languageVersion: string, data: any) => {
@@ -80,9 +90,13 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 			}
 			setClient(temp);
 		}
-		init();
+		setAddress('');
+		if (!initialised) {
+			// setCompilerConfig(version, optimize);
+			init();
+		}
 		// eslint-disable-next-line
-  }, []);
+  }, [network]);
 
 	async function compile() {
 		setBusy(true);
@@ -129,7 +143,7 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 				};
 				// console.log(rawTx)
 				const txReceipt = await celo.sendTransaction(rawTx);
-				// console.log(txReceipt)
+				// console.log(txReceipt);
 				if (txReceipt.contractAddress) {
 					setAddress(txReceipt.contractAddress);
 					addNewContract({
@@ -137,12 +151,14 @@ const Compiler: React.FunctionComponent<InterfaceProps> = (props) => {
 						address: txReceipt.contractAddress,
 						abi: getFunctions(contracts.data[contractName].abi),
 					});
+				} else {
+					setError('contractAddress error');
 				}
 				updateBalance(accounts[0]);
 			} catch (e) {
 				// eslint-disable-next-line
         console.error(e)
-				setError(e.message ? e.message : e.toString());
+				setError('deploy error');
 			}
 			setBusy(false);
 		}
