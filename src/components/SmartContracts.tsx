@@ -156,14 +156,12 @@ const ContractCard: React.FunctionComponent<{
 	celo: Celo;
 	busy: boolean;
 	setBusy: (state: boolean) => void;
-	blockscout: string;
 	contract: InterfaceContract;
 	index: number;
 	remove: () => void;
 	updateBalance: (address: string) => void;
-}> = (props) => {
+}> = ({ celo, busy, setBusy, contract, index, remove, updateBalance }) => {
 	const [enable, setEnable] = React.useState<boolean>(true);
-	const { celo, busy, setBusy, blockscout, contract, index, remove, updateBalance } = props;
 
 	function DrawMathods() {
 		const list = contract.abi ? contract.abi : [];
@@ -205,7 +203,7 @@ const ContractCard: React.FunctionComponent<{
 						size="sm"
 						variant="link"
 						onClick={() => {
-							window.open(`${blockscout}/address/${contract.address}`);
+							window.open(`${celo.getNetwork().blockscout}/address/${contract.address}`);
 						}}
 					>
 						<i className="fas fa-external-link-alt" />
@@ -231,15 +229,19 @@ interface InterfaceSmartContractsProps {
 	celo: Celo;
 	busy: boolean;
 	setBusy: (state: boolean) => void;
-	blockscout: string;
 	contracts: InterfaceContract[];
 	updateBalance: (address: string) => void;
 }
 
-const SmartContracts: React.FunctionComponent<InterfaceSmartContractsProps> = (props) => {
+const SmartContracts: React.FunctionComponent<InterfaceSmartContractsProps> = ({
+	celo,
+	busy,
+	setBusy,
+	contracts,
+	updateBalance,
+}) => {
 	const [error, setError] = React.useState<string>('');
 	const [count, setCount] = React.useState<number>(0);
-	const { celo, busy, setBusy, blockscout, contracts, updateBalance } = props;
 
 	React.useEffect(() => {
 		setCount(0);
@@ -252,7 +254,6 @@ const SmartContracts: React.FunctionComponent<InterfaceSmartContractsProps> = (p
 				celo={celo}
 				busy={busy}
 				setBusy={setBusy}
-				blockscout={blockscout}
 				contract={data}
 				index={index}
 				remove={() => {

@@ -10,7 +10,6 @@ const App: React.FunctionComponent = () => {
 	const [balance, setBalance] = React.useState<string>('');
 	const [network, setNetwork] = React.useState<string>('Mainnet');
 	const [disabledNetSelect, setDisabledNetSelect] = React.useState<boolean>(true);
-	const [blockscout, setBlockscout] = React.useState<string>('');
 	const [busy, setBusy] = React.useState<boolean>(false);
 	const [celo] = React.useState<Celo>(new Celo(NETWORKS.Mainnet));
 	const [atAddress, setAtAddress] = React.useState<string>('');
@@ -26,7 +25,6 @@ const App: React.FunctionComponent = () => {
 		if (!celo.isConnected) {
 			setBusy(true);
 			const support = await celo.getSupport();
-			setBlockscout(NETWORKS[network].blockscout || '');
 
 			if (support.celo) {
 				const result = await celo.connectCelo(
@@ -74,7 +72,6 @@ const App: React.FunctionComponent = () => {
 			setBusy(true);
 			setContracts([]);
 			const temp = e.target.value;
-			setBlockscout(NETWORKS[temp].blockscout || '');
 			await celo.changeNetwork(NETWORKS[temp]);
 			setNetwork(temp);
 			setBusy(false);
@@ -195,14 +192,7 @@ const App: React.FunctionComponent = () => {
 					</InputGroup.Append>
 				</InputGroup>
 				<hr />
-				<SmartContracts
-					celo={celo}
-					busy={busy}
-					setBusy={setBusy}
-					blockscout={blockscout}
-					contracts={contracts}
-					updateBalance={updateBalance}
-				/>
+				<SmartContracts celo={celo} busy={busy} setBusy={setBusy} contracts={contracts} updateBalance={updateBalance} />
 			</Container>
 		</div>
 	);
