@@ -27,3 +27,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.<br />
 You will also see any lint errors in the console.
+
+
+## And now support Welldon Wallet
+![Frame_601](https://user-images.githubusercontent.com/57783762/179884870-2b9b5c51-4e24-49c5-a48f-3c4ab68d2085.png)
